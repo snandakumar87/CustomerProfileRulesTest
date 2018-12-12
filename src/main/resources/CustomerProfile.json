@@ -1,0 +1,40 @@
+{
+
+    "customerName":"TEST_CUSTOMER",
+    "customerAccountNumber":"6544678990008",
+    "customerGeo":"EST",
+      "events":[{
+
+        "eventCategory":"CC_BALANCE_PAYMENT",
+        "eventValue":"LATE_PAYMENT",
+        "eventSource":"CUSTOMERCARE",
+        "eventDate":"2018-14-23T18:25:43.511Z",
+        "eventId":"87987"
+      },
+        {
+
+          "eventCategory":"CC_BALANCE_PAYMENT",
+          "eventValue":"MIN_DUE",
+          "eventSource":"MOBILE",
+          "eventDate":"2018-14-23T18:25:43.511Z",
+          "eventId":"87987"
+        },
+        {
+
+          "eventCategory":"DISPUTE",
+          "eventValue":"CASE_CREATED",
+          "eventSource":"IVR",
+          "eventDate":"2018-14-23T18:25:43.511Z",
+          "eventId":"87987"
+        }
+      ],
+      "models":[{
+          "modelName":"CUSTOMER_GOOD_STANDING",
+          "confidence":"100"
+      },
+        {
+        "modelName":"HIGH_BALANCE_DEBT",
+        "confidence":"100"
+        }]
+
+}

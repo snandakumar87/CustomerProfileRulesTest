@@ -1,6 +1,8 @@
 package com;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.kie.api.KieServices;
 import org.kie.api.builder.ReleaseId;
 import org.kie.api.runtime.ClassObjectFilter;
@@ -9,6 +11,7 @@ import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -27,53 +30,46 @@ public class Main {
 
     private static KieContainer kieContainer;
 
-    public static void main(String[] args) {
 
+    public static void main(String[] args) {
+        ObjectMapper mapper = new ObjectMapper();
 
         ReleaseId rId1 = KIE_SERVICES.newReleaseId("com.redhat", "Personalization_Rules", "1.0.0");
         kieContainer = KIE_SERVICES.newKieContainer(rId1);
 
 
-
+        Main main = new Main();
         //Test Data setup
-        CustomerProfile customerProfile = getCustomerProfile();
+        CustomerProfile customerProfile = main.getCustomerProfile();
         // Process the incoming transaction.
-        List<eventAnalysis> analysisModels = processTransactionForAllEvents(customerProfile.getEvents(),customerProfile.getModels());
+        List<eventAnalysis> analysisModels = main.processTransactionForAllEvents(customerProfile.getEvents(),customerProfile.getModels());
         customerProfile.setEventAnalysisModels(analysisModels);
-        System.out.print(customerProfile);
+        try {
+            System.out.print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(customerProfile));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
 
     }
 
-    private static CustomerProfile getCustomerProfile() {
-        CustomerProfile customerProfile = new CustomerProfile();
+    private  CustomerProfile getCustomerProfile() {
+        ObjectMapper mapper = new ObjectMapper();
 
-        customerProfile.setCustomerAccountNumber("TEST_ACCOUNT_NUMBER");
-        customerProfile.setCustomerName("TEST_CUSTOMER");
-        Event event = new Event("CC_BALANCE_PAYMENT","ONLINE",new Date(),"GFFHJU-7657","LATE_PAYMENT");
-        Event event1 = new Event("CC_BALANCE_PAYMENT","ONLINE",new Date(),"GFFHJU-7657","MIN_DUE");
-        Event event2 = new Event("DISPUTE","IVR",new Date(),"GFFHJU-7657","CASE_CREATED");
-        Event event3 = new Event("DISPUTE","IVR",new Date(),"GFFHJU-7657","CASE_CLOSED");
-        Event event4 = new Event("ONLINE","IVR",new Date(),"GFFHJU-7657","CASE_CREATED");
-        List<Event> eventsForProcessing = new LinkedList<Event>();
-        eventsForProcessing.add(event);
-        eventsForProcessing.add(event1);
-        eventsForProcessing.add(event2);
-        eventsForProcessing.add(event3);
-        eventsForProcessing.add(event4);
+        CustomerProfile testObj = null;
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        try {
+        File file = new File(classLoader.getResource("CustomerProfile.json").getFile());
+        InputStream is = new FileInputStream(file);
+        testObj = mapper.readValue(is, CustomerProfile.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        List<TrainingModel> trainingModels = new LinkedList<TrainingModel>();
-        TrainingModel trainingModel = new TrainingModel("CUSTOMER_GOOD_STANDING",100);
-        TrainingModel trainingModel1 = new TrainingModel("HIGH_BALANCE_DEBT",100);
-        trainingModels.add(trainingModel);
-        trainingModels.add(trainingModel1);
-
-        customerProfile.setEvents(eventsForProcessing);
-        customerProfile.setModels(trainingModels);
-        return customerProfile;
+        return testObj;
     }
 
-    private  static List<eventAnalysis> processTransactionForAllEvents(List<Event> events, List<TrainingModel> models) {
+    private   List<eventAnalysis> processTransactionForAllEvents(List<Event> events, List<TrainingModel> models) {
         List<eventAnalysis> eventAnalysisModel = new LinkedList<eventAnalysis>();
         for(Event event:events) {
             for (TrainingModel trainingModel:models) {
@@ -87,7 +83,7 @@ public class Main {
 
     }
 
-    private static eventAnalysis processTransaction(Event events, TrainingModel trainingModel) {
+    private  eventAnalysis processTransaction(Event events, TrainingModel trainingModel) {
 
 
         KieSession kieSession = kieContainer.newKieSession();
